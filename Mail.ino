@@ -1,5 +1,5 @@
 #ifdef USE_MAIL
-EthernetClient mailClient;
+ETHERNETCLIENT mailClient;
 
 void SendMail()
 {

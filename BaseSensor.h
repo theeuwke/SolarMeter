@@ -2,9 +2,50 @@
 #define BaseSensor_h
 
 #include "Arduino.h"
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#include <EEPROM.h>
+#warning "need to implement eeprom"
+#define EEPROM_WRITE_DWORD(a,b) eeWriteInt((int)a,b)
+#define EEPROM_READ_DWORD(a) eeGetInt((int)a)
+#define EEPROM_READ_BYTE(a) EEPROM.read((int)a)
+#define EEPROM_WRITE_BYTE(a,b) EEPROM.write((int)a,b)
+#define ETHERNETCLIENT WiFiClient
+#else
 #include <avr/eeprom.h>
 #include <EthernetClient.h>
+#define EEPROM_WRITE_DWORD(a,b) eeprom_write_dword(a,b)
+#define EEPROM_READ_DWORD(a) eeprom_read_dword(a)
+#define EEPROM_READ_BYTE(a) eeprom_read_byte(a)
+#define EEPROM_WRITE_BYTE(a,b) eeprom_write_byte(a,b)
+#define ETHERNETCLIENT EthernetClient
+#endif
+
 #include "FlashMini.h"
+#include <SoftwareSerial.h>
+
+#ifdef ESP8266
+static inline unsigned int eeGetInt(int pos) {
+  unsigned int val;
+  byte* p = (byte*) &val;
+
+  *p        = EEPROM.read(pos);
+  *(p + 1)  = EEPROM.read(pos + 1);
+  *(p + 2)  = EEPROM.read(pos + 2);
+  *(p + 3)  = EEPROM.read(pos + 3);
+  return val;
+}
+
+static inline void eeWriteInt(int pos, unsigned int val) {
+    byte* p = (byte*) &val;
+
+    EEPROM.write(pos, *p);
+    EEPROM.write(pos + 1, *(p + 1));
+    EEPROM.write(pos + 2, *(p + 2));
+    EEPROM.write(pos + 3, *(p + 3));
+    EEPROM.commit();
+}
+#endif
 
 class BaseSensor
 {
@@ -38,5 +79,4 @@ class BaseSensor
 };
 
 #endif
-
 

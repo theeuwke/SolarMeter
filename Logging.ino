@@ -1,4 +1,28 @@
 #ifdef USE_LOGGING
+#ifdef ESP8266
+  void SetupSD()
+  {
+    Serial.begin(115200);
+  }
+
+  void OpenLogFile()
+  {
+  }
+
+  void CloseLogFile()
+  {
+  }
+
+  void WriteDateToLog()
+  {
+    Serial.print(year()); Serial.print("-"); Serial.print(month()); Serial.print("-"); Serial.print(day()); Serial.println(";");
+    Serial.print(hour()); Serial.print(":"); Serial.print(minute()); Serial.print(":"); Serial.print(second()); Serial.println(";");
+  }
+
+  void dateTime(uint16_t* date, uint16_t* time)
+  {
+  }
+#else
   boolean SD_OK;
   
   void SetupSD()
@@ -51,7 +75,7 @@
           logFile.flush();
       }
   }
-     
+
   // this function is called by SD if it wants to know the time
   void dateTime(uint16_t* date, uint16_t* time) 
   {
@@ -59,5 +83,6 @@
       *date = FAT_DATE(year(), month(), day());
       // return time using FAT_TIME macro to format fields
       *time = FAT_TIME(hour(), minute(), second());
-  }   
+  }
+#endif
 #endif

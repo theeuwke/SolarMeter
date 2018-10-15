@@ -40,16 +40,18 @@ void CheckWatchdog()
     // so a normal watchdog would not be long enough.
     if(busyCounter<TIMEOUT)
     {
-          // reset watchdog counter  
-          wdt_reset();        
+          // reset watchdog counter
+          #ifdef USE_WD
+          wdt_reset();
+          #endif
     }
     else
     {
         // while waiting for the reset-by watchdog, save the current busystate
-        eeprom_write_byte ((uint8_t*)EE_STATE, busyState);
+        EEPROM_WRITE_BYTE((uint8_t*)EE_STATE, busyState);
         // increment the watchdog reset counter
-        byte ctr = eeprom_read_byte ((uint8_t*)EE_CTR) + 1;
-        eeprom_write_byte ((uint8_t*)EE_CTR, ctr);
+        byte ctr = EEPROM_READ_BYTE ((uint8_t*)EE_CTR) + 1;
+        EEPROM_WRITE_BYTE((uint8_t*)EE_CTR, ctr);
         // save all counters
         SaveValues();
         // wait for the reset to come

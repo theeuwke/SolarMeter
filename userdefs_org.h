@@ -23,6 +23,9 @@ static byte dnsserver[] = {192,168,1,1};                          // use the add
                                                                   // or use { 8, 8, 8, 8 } as general DNS server from Google if you have no other option
 static byte gateway[]   = { 192, 168, 1, 1 };
 static byte subnet[]    = { 255, 255, 255, 0 };  
+
+const char* ssid     = "your-ssid";
+const char* password = "your-password";
 //*****************************************************************
 #define NTP_SERVER "nl.pool.ntp.org"                             // If you are having problems with the time synchonisation, try a different NTP server
 
@@ -110,7 +113,12 @@ S0Sensor  S1(2,1000,2222,2,1);   // S0 sensor connected to pin 2, logging to var
 //   2: The SID
 //   3: The variable to log to. See software manual
 //   4: The x-factor. The actual and total values will be divided by this number before sending to pvoutput
-P1Power P1(&Serial,2222, 24, 1);
+#ifdef ESP8266
+SoftwareSerial SwSerial(2,3);
+P1Power P1(&SwSerial, 2222, 24, 1);
+#else
+P1Power P1(&Serial, 2222, 24, 1);
+#endif
 //*****************************************************************
 // Smartmeter Gas sensors have 4 parameter: 
 //   1: Smartmeter Serial object. Default: P1

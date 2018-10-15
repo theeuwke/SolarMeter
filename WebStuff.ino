@@ -1,8 +1,14 @@
 String inString = String((char*)"");
 
+#ifdef ESP8266
+extern "C" {
+#include "user_interface.h"
+}
+#endif
+
 void ServeWebClients()
 {
-    EthernetClient client = server.available();
+    ETHERNETCLIENT client = server.available();
     if (client) 
     {
         inString = client.readStringUntil('\n');
@@ -83,7 +89,7 @@ void ResetValues()
     }
 }
 
-void ShowStatus(EthernetClient client)
+void ShowStatus(ETHERNETCLIENT client)
 {
     const char* br = "<br>";
     client << F("<html><style>td,th {padding:8;text-align:center;}</style>");
@@ -110,17 +116,21 @@ void ShowStatus(EthernetClient client)
     #ifdef EXOSITE_KEY
     client << F("ExResponse=") << exResponse << br;
     #endif
-    client << F("WD ctr=") << eeprom_read_byte ((uint8_t*)EE_CTR) << br;
-    client << F("WD val=") << eeprom_read_byte ((uint8_t*)EE_STATE) << br;
-    client << F("Reset Day=") << eeprom_read_byte ((uint8_t*)EE_RESETDAY) << br;
+    client << F("WD ctr=") << EEPROM_READ_BYTE ((uint8_t*)EE_CTR) << br;
+    client << F("WD val=") << EEPROM_READ_BYTE ((uint8_t*)EE_STATE) << br;
+    client << F("Reset Day=") << EEPROM_READ_BYTE ((uint8_t*)EE_RESETDAY) << br;
     client << F("Free=") << freeRam() << br;
 }
 
 int freeRam() 
 {
+#ifdef ESP8266
+  return system_get_free_heap_size();
+#else
   extern int __heap_start, *__brkval; 
   int v; 
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+#endif
 }
 
 

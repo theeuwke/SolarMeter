@@ -25,7 +25,7 @@ void SendToMinderGas()
         if(GasCountdown==0)
         {
             // start the upload when the counter reaches 0
-            EthernetClient mgClient;
+            ETHERNETCLIENT mgClient;
             time_t t = now() - SECS_PER_DAY; // we want to upload the gas usage of yesterday so rewind the clock for 1 day
             // try to connect to minderGas
             int res = mgClient.connect((char*)"mindergas.nl",80); 

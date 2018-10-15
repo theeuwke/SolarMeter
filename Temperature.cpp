@@ -39,7 +39,7 @@ void Temperature::Loop(int m)
 void Temperature::GetTemperature()
 {
     // Get temperature from buienradar
-    EthernetClient buienradarClient;
+    ETHERNETCLIENT buienradarClient;
     buienradarClient.setTimeout(2000);
     if(buienradarClient.connect((char*)"xml.buienradar.nl",80)) 
     {

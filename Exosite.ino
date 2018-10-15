@@ -4,7 +4,7 @@ int exResponse;
 
 void SendToExosite()
 {
-    EthernetClient exoSiteClient;
+    ETHERNETCLIENT exoSiteClient;
     // try to connect to exoSite
     if (exoSiteClient.connect((char*)"m2.exosite.com",80)) 
     {

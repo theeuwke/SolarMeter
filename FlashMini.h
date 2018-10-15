@@ -20,7 +20,10 @@
 #ifndef Flash_h
 #define Flash_h
 
+#ifdef ESP8266
+#else
 #include <avr/pgmspace.h>
+#endif
 #include <Arduino.h>
 
 #define FLASH_LIBRARY_VERSION 4
@@ -28,13 +31,13 @@
 #ifndef ARDUINO_STREAMING
 #define ARDUINO_STREAMING
 
-template<class T> 
-inline Print &operator <<(Print &stream, T arg) 
+template<class T>
+inline Print &operator <<(Print &stream, T arg)
 { stream.print(arg); return stream; }
 
 enum _EndLineCode { endl };
 
-inline Print &operator <<(Print &stream, _EndLineCode arg) 
+inline Print &operator <<(Print &stream, _EndLineCode arg)
 { stream.println(); return stream; }
 
 #endif

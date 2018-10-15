@@ -4,13 +4,13 @@ char pvResponse[80];
 time_t pvResponseTime;
 float previous = -1;
 
-
 // This function will contact the DNS server and ask for an IP address of PvOutput
 // If successfull, this address will be used
 // If not, keep using the previous found address
 // In this way, we can still update to pvoutput if the dns timeouts.
 void CheckIpPv()
 {
+#ifndef ESP8266
   // Look up the host first
   DNSClient dns;
   IPAddress remote_addr;
@@ -18,13 +18,14 @@ void CheckIpPv()
   dns.begin(Ethernet.dnsServerIP());
   DnsStatus = dns.getHostByName((char*)"pvoutput.org", remote_addr);
   if (DnsStatus == 1)  ip_pvoutput = remote_addr; // if success, copy
+#endif
 }
 
 // This function updates all registered sensors to pvoutput
 // The sensors are listed in the 'S' array
 void SendToPvOutput(BaseSensor** S)
 {
-  EthernetClient pvout;
+  ETHERNETCLIENT pvout;
   // create a total for each variable that can be used in pvoutput
   // !! The index in this array starts at 0 while the pvoutput vars start at 1
   float v[12]; // data sum
@@ -35,9 +36,9 @@ void SendToPvOutput(BaseSensor** S)
     v[n] = 0;
     b[n] = false;
   }
-  
+
   CheckIpPv(); // update the ipaddress via DNS
-  
+
   unsigned int sid = S[0]->SID;
 
   for(byte i = 0; i<NUMSENSORS; i++) // scan through the sensor array
@@ -89,7 +90,11 @@ void SendToPvOutput(BaseSensor** S)
     {
       if(sid > 0) // only upload if the sid is valid
       {
+#ifdef ESP8266
+        int res = pvout.connect("pvoutput.org",80);
+#else
         int res = pvout.connect(ip_pvoutput,80);
+#endif
         if(res == 1) // connection successfull
         {
           pvout << F("GET /service/r2/addstatus.jsp");

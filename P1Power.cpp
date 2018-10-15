@@ -1,6 +1,10 @@
 #include "P1Power.h"
 
+#ifdef ESP8266
+P1Power::P1Power(SoftwareSerial *serIn, int sid, byte t, int f) : BaseSensor(1000,sid,f) // 1000 is dummy. not used for P1
+#else
 P1Power::P1Power(HardwareSerial *serIn, int sid, byte t, int f) : BaseSensor(1000,sid,f) // 1000 is dummy. not used for P1
+#endif
 {
   Type = t; // default = 24, same as ferraris sensor: log net consumption
   serial = serIn;

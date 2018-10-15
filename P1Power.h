@@ -13,7 +13,11 @@
 class P1Power : public BaseSensor
 {
   public:
-    P1Power(HardwareSerial* serIn, int sid, byte t, int f); 
+#ifdef ESP8266
+    P1Power(SoftwareSerial* serIn, int sid, byte t, int f);
+#else
+    P1Power(HardwareSerial* serIn, int sid, byte t, int f);
+#endif
     void Begin(byte i);
     void CalculateActuals();            // Convert P1 data to actual and day values
     void Status(Print& client);         // Dump status to ethernet    
@@ -31,7 +35,11 @@ class P1Power : public BaseSensor
   
   private:
     void ParseBuffer();
+#ifdef ESP8266
+    SoftwareSerial* serial;
+#else
     HardwareSerial* serial;  
+#endif
     char    buffer[BUFSIZE]; // storage for one line of data
     byte    bufpos;
     bool    readnextLine;    // used for gasmeter value

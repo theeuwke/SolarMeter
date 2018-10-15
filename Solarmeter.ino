@@ -1,13 +1,23 @@
 #define VERSION "V11.43"
 
+#ifdef ESP8266
+#include <Ticker.h>
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+Ticker EspTimer;
+WiFiUDP Udp;
+WiFiServer server(555);
+#else
 #include <SPI.h>
 #include <Ethernet.h>
 #include <EthernetUdp.h>
-#include <Dns.h>
-#include <TimeLib.h>
 #include <MsTimer2.h>
 #include <avr/wdt.h>
 #include <utility/w5100.h>
+EthernetUDP Udp;
+EthernetServer server(555);  // port changed from 80 to 555
+#endif
+#include <TimeLib.h>
 
 #include "FlashMini.h"
 #include "S0Sensor.h"
@@ -18,7 +28,7 @@
 #include "Temperature.h"
 #include "userdefs.h"
 
-//#include <SD.h>
+#include <Dns.h>
 
 // global variables
 byte   lastDayReset;
@@ -28,24 +38,43 @@ byte   iDay;
 byte   iHour;
 byte   iMinute;
 int    upTime;               // the amount of hours the Arduino is running
-EthernetServer server(555);  // port changed from 80 to 555
-EthernetUDP Udp;
 char   webData[70];
-#ifdef USE_LOGGING
+#if defined(USE_LOGGING) && !defined(ESP8266)
+#include <SD.h>
   File   logFile;
 #endif
 #define EE_RESETDAY 4
 
 void setup()
 {
+    // initialize network
+#ifdef ESP8266
+    Serial.begin(115200);
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
+
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    EEPROM.begin(1024);
+#else
     // wait for the ethernet shield to wakeup
     delay(300);
-    // initialize network
     Ethernet.begin(mac, ip, dnsserver, gateway, subnet);
     // set connect timeout parameters
     W5100.setRetransmissionTime(2000); // 200ms per try
     W5100.setRetransmissionCount(8);
-
+#endif
     // Try to set the time 10 times
     UpdateTime();
 
@@ -66,7 +95,7 @@ void setup()
     randomSeed(analogRead(0));
 
     // restore the last day on which the counters were reset
-    lastDayReset = eeprom_read_byte((uint8_t*) EE_RESETDAY);
+    lastDayReset = EEPROM_READ_BYTE((uint8_t*) EE_RESETDAY);
     // if the eeprom contains illegal data, set it to a useful value
     if(lastDayReset == 0 || lastDayReset > 31) lastDayReset = day();
     lastMinute = minute();
@@ -77,8 +106,12 @@ void setup()
       SetupWatchdog();
     #endif
     // start the timer interrupt
+#ifdef ESP8266
+    EspTimer.attach_ms(5, Every5ms); //Use <strong>attach_ms</strong> if you need time in ms
+#else
     MsTimer2::set(5, Every5ms); // 5ms period
     MsTimer2::start();
+#endif
 }
 
 // check and update all counters every 5ms.
@@ -118,7 +151,7 @@ void loop()
         #endif
         lastDayReset = iDay;
         // store today as the date of the last counter reset
-        eeprom_write_byte((uint8_t*) EE_RESETDAY, lastDayReset);
+        EEPROM_WRITE_BYTE((uint8_t*) EE_RESETDAY, lastDayReset);
     }
 
     // hour has changed
@@ -168,10 +201,16 @@ void loop()
             for(byte i = 0; i < NUMSENSORS; i++)
             {
                 //sensors[i]->Status(&logFile);
+#ifdef ESP8266
+                Serial.print(sensors[i]->Today); Serial.print(";"); Serial.print(sensors[i]->Actual); Serial.println(";");
+#else
                 logFile << sensors[i]->Today << ";" << sensors[i]->Actual << ";" << endl;
+#endif
             }
+#ifndef ESP8266
             logFile << endl;
             logFile.flush();
+#endif
         #endif
         busy(32);
         // update every 5 minutes or whatever is set in userdefs
@@ -206,5 +245,4 @@ void loop()
     // give the ethernet shield some time to rest
     delay(50);
 }
-
 
