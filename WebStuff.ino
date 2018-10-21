@@ -25,7 +25,7 @@ void ServeWebClients()
         int i=inString.indexOf("?");
         if(i!=-1) ReadValue(inString,i);
         ShowStatus(client);
-        client.stop();
+        client.flush();
     }
 }
 
