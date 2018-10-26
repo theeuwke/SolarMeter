@@ -8,8 +8,12 @@ int busyCounter;
 void SetupWatchdog()
 {
     #ifdef USE_WD
-    // set watchdog timeout to 4 seconds
-    wdt_enable(WDTO_4S);
+      // set watchdog timeout to 4 seconds
+      #ifdef ESP8266
+      ESP.wdtEnable(4000);
+      #else
+      wdt_enable(WDTO_4S);
+      #endif
     #endif
     // initialize counters
     busyCounter = 0;
@@ -42,7 +46,11 @@ void CheckWatchdog()
     {
           // reset watchdog counter
           #ifdef USE_WD
-          wdt_reset();
+            #ifdef ESP8266
+            ESP.wdtFeed();
+            #else
+            wdt_reset();
+            #endif
           #endif
     }
     else
